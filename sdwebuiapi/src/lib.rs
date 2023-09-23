@@ -1,3 +1,8 @@
+#![recursion_limit = "256"]
+mod sdwebuiclient;
+pub use sdwebuiclient::Client;
+
+
 pub fn add(left: usize, right: usize) -> usize {
     left + right
 }
