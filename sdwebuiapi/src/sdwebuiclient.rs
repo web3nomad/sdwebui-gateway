@@ -1,12 +1,14 @@
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use reqwest;
 
 use super::enums::Sampler;
 use super::enums::Upscaler;
 
+#[derive(Serialize, Deserialize)]
 pub struct TextToImagePayload {
     pub prompt: String,
-    pub sampler: Sampler,
+    pub sampler_name: Sampler,
     pub upscaler: Upscaler,
 }
 
@@ -15,7 +17,7 @@ impl Default for TextToImagePayload {
     fn default() -> Self {
         Self {
             prompt: "".to_string(),
-            sampler: Sampler::EulerA,
+            sampler_name: Sampler::EulerA,
             upscaler: Upscaler::none,
         }
     }
@@ -36,12 +38,10 @@ impl Client {
         }
     }
 
-    pub async fn textToImage(&self, payload: TextToImagePayload) -> String {
-        "".to_string()
-    }
-
-    pub async fn txt2img(&self, prompt: &str) -> String {
-        let payload = json!({
+    pub async fn txt2img(&self, payload: TextToImagePayload) -> String {
+        // let payload_json = serde_json::to_string(&payload).unwrap();
+        let payload_value = serde_json::to_value(&payload).unwrap();
+        let mut request_payload = json!({
             "enable_hr": false,
             "denoising_strength": 0,
             "firstphase_width": 0,
@@ -54,14 +54,12 @@ impl Client {
             "hr_sampler_name": "",
             "hr_prompt": "",
             "hr_negative_prompt": "",
-            "prompt": prompt.to_string(),
             "styles": [],
             "seed": -1,
             "subseed": -1,
             "subseed_strength": 0,
             "seed_resize_from_h": -1,
             "seed_resize_from_w": -1,
-            "sampler_name": "Euler a",
             "batch_size": 1,
             "n_iter": 1,
             "steps": 50,
@@ -88,15 +86,18 @@ impl Client {
             "save_images": false,
             "alwayson_scripts": {}
         });
+        request_payload.as_object_mut().unwrap().extend(payload_value.as_object().unwrap().clone());
+        // merge payload1 to payload2
         let res = reqwest::Client::new()
             .post("http://localhost:7860/sdapi/v1/txt2img")
             .header("Content-Type", "application/json")
-            .json(&payload)
+            .json(&request_payload)
             .send()
             .await
             .unwrap();
         println!("status = {}", res.status());
         let body = res.text().await.unwrap();
+        println!("body = {}", body);
         let json_data: serde_json::Value = serde_json::from_str(&body).unwrap();
         let raw_b64_str = json_data["images"][0].as_str().unwrap();
         let b64_img_str = b64_img(raw_b64_str);

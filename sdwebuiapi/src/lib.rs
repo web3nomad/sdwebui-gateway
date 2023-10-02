@@ -2,7 +2,7 @@
 mod sdwebuiclient;
 mod enums;
 
-pub use sdwebuiclient::Client;
+pub use sdwebuiclient::*;
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right

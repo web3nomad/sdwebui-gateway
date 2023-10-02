@@ -1,9 +1,25 @@
 // whole enum for stable diffusion webui sampler
+use serde::{Deserialize, Serialize, Serializer};
+
+#[derive(Deserialize)]
 pub enum Sampler {
     EulerA,
-    Euler
+    Euler,
 }
 
+impl Serialize for Sampler {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            Sampler::EulerA => serializer.serialize_str("Euler a"),
+            Sampler::Euler => serializer.serialize_str("Euler"),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
 pub enum Upscaler {
     none,
     Lanczos,
