@@ -1,6 +1,26 @@
 use serde_json::json;
 use reqwest;
 
+use super::enums::Sampler;
+use super::enums::Upscaler;
+
+pub struct TextToImagePayload {
+    pub prompt: String,
+    pub sampler: Sampler,
+    pub upscaler: Upscaler,
+}
+
+// add default value to TextToImagePayload's sampler and upscaler
+impl Default for TextToImagePayload {
+    fn default() -> Self {
+        Self {
+            prompt: "".to_string(),
+            sampler: Sampler::EulerA,
+            upscaler: Upscaler::none,
+        }
+    }
+}
+
 fn b64_img(raw_b64_str: &str) -> String {
     "data:image/png;base64,".to_string() + raw_b64_str
 }
@@ -14,6 +34,10 @@ impl Client {
         Self {
             origin: origin.to_string(),
         }
+    }
+
+    pub async fn textToImage(&self, payload: TextToImagePayload) -> String {
+        "".to_string()
     }
 
     pub async fn txt2img(&self, prompt: &str) -> String {
