@@ -1,6 +1,10 @@
 use serde_json::json;
 use reqwest;
 
+fn b64_img(raw_b64_str: &str) -> String {
+    "data:image/png;base64,".to_string() + raw_b64_str
+}
+
 pub struct Client {
     pub origin: String,
 }
@@ -12,7 +16,7 @@ impl Client {
         }
     }
 
-    pub async fn txt2img(&self, prompt: &str) {
+    pub async fn txt2img(&self, prompt: &str) -> String {
         let payload = json!({
             "enable_hr": false,
             "denoising_strength": 0,
@@ -68,7 +72,11 @@ impl Client {
             .await
             .unwrap();
         println!("status = {}", res.status());
-        println!("res = {:?}", res.text().await);
+        let body = res.text().await.unwrap();
+        let json_data: serde_json::Value = serde_json::from_str(&body).unwrap();
+        let raw_b64_str = json_data["images"][0].as_str().unwrap();
+        let b64_img_str = b64_img(raw_b64_str);
+        return b64_img_str;
     }
 
 }
