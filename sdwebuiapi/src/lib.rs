@@ -1,8 +1,11 @@
 #![recursion_limit = "256"]
-mod sdwebuiclient;
+mod client;
+mod types;
 mod enums;
 
-pub use sdwebuiclient::*;
+pub use client::*;
+pub use types::*;
+pub use enums::*;
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right

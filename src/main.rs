@@ -1,3 +1,4 @@
+// use sdwebuiapi::TextToImagePayload;
 use tokio;
 
 #[tokio::main]
@@ -8,6 +9,8 @@ async fn main() {
     let client = sdwebuiapi::Client::new("http://localhost:7860/");
     // println!("Client host: {}", client.origin);
     // let b64_img_str = client.txt2img("a cyberpunk cat").await;
+    // let xyz = Default::default();
+    // let xyz: TextToImagePayload = Default::default();
     let payload = sdwebuiapi::TextToImagePayload {
         prompt: "a cyberpunk cat".to_string(),
         ..Default::default()
