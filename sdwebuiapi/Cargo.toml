@@ -1,6 +1,10 @@
 [package]
 name = "sdwebuiapi"
-version = "0.1.0"
+description = "A library for interacting with openapi of AUTOMATIC1111/stable-diffusion-webui"
+version = "0.0.2"
+repository = "https://github.com/web3nomad/sdwebui-gateway"
+readme = "README.md"
+license = "MIT"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
