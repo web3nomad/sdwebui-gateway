@@ -1,7 +1,7 @@
 // whole enum for stable diffusion webui sampler
 use serde::{Deserialize, Serialize, Serializer};
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub enum Sampler {
     EulerA,
     Euler,
@@ -19,7 +19,7 @@ impl Serialize for Sampler {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Upscaler {
     None
     // none,
