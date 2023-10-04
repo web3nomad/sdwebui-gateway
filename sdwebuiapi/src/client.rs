@@ -1,9 +1,8 @@
-use serde_json::json;
 use reqwest;
+use serde_json::json;
 
 use super::types::TextToImagePayload;
 use super::types::TextToImageResponse;
-
 
 pub struct OpenApiV1 {
     pub api_root: String,
@@ -17,14 +16,14 @@ impl OpenApiV1 {
         } else {
             format!("{}{}", origin, "/sdapi/v1/")
         };
-        Self {
-            api_root,
-        }
+        Self { api_root }
     }
 
-    pub async fn call(&self, api_path: &str, request_payload: serde_json::Value)
-        -> Result<serde_json::Value, reqwest::Error>
-    {
+    pub async fn call(
+        &self,
+        api_path: &str,
+        request_payload: serde_json::Value,
+    ) -> Result<serde_json::Value, reqwest::Error> {
         let url: String = format!("{}{}", self.api_root, api_path);
         let res = reqwest::Client::new()
             .post(url)
@@ -40,7 +39,6 @@ impl OpenApiV1 {
     }
 }
 
-
 pub struct Client {
     pub open_api_v1: OpenApiV1,
 }
@@ -53,15 +51,43 @@ impl Client {
     }
 
     pub async fn txt2img(&self, payload: TextToImagePayload) -> TextToImageResponse {
-        let payload_value = serde_json::to_value(&payload).unwrap();
-        let mut request_payload = json!({
-            //
-        });
-        // merge payload1 to payload2
-        request_payload.as_object_mut().unwrap().extend(payload_value.as_object().unwrap().clone());
-        let json_data = self.open_api_v1.call("txt2img", request_payload).await.unwrap();
+        let mut request_payload = json!({});
+
+        // if payload.controlnet_units is not empty, append them to request_payload
+        if payload.controlnet_units.len() > 0 {
+            let alwayson_scripts = json!({
+                "alwayson_scripts": {
+                    "ControlNet": {
+                        "args": serde_json::to_value(&payload.controlnet_units).unwrap()
+                    }
+                }
+            });
+            request_payload
+                .as_object_mut()
+                .unwrap()
+                .extend(alwayson_scripts.as_object().unwrap().clone());
+        }
+
+        let mut payload_value = serde_json::to_value(&payload).unwrap();
+        payload_value
+            .as_object_mut()
+            .unwrap()
+            .remove("controlnet_units");
+        // println!("payload_value = {}", payload_value.to_string());
+
+        request_payload
+            .as_object_mut()
+            .unwrap()
+            .extend(payload_value.as_object().unwrap().clone());
+
+        // println!("request_payload = {}", request_payload.to_string());
+
+        let json_data = self
+            .open_api_v1
+            .call("txt2img", request_payload)
+            .await
+            .unwrap();
         let response: TextToImageResponse = serde_json::from_value(json_data).unwrap();
         return response;
     }
-
 }
