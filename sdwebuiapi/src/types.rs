@@ -48,9 +48,9 @@ pub struct TextToImagePayload {
 
     // pub script_name: String,
     // pub script_args: Vec<String>,
-    pub alwayson_scripts: serde_json::Value,
-    // pub override_settings: {},
-    // pub override_settings_restore_afterwards: bool,
+    pub alwayson_scripts: serde_json::Map<String, serde_json::Value>,
+    pub override_settings: serde_json::Map<String, serde_json::Value>,
+    pub override_settings_restore_afterwards: bool,
 }
 
 // add default value to TextToImagePayload's sampler and upscaler
@@ -92,12 +92,28 @@ impl Default for TextToImagePayload {
             sampler_name: "Euler a".to_owned(),
             send_images: true,
             save_images: false,
-            alwayson_scripts: json!({}),
+            alwayson_scripts: serde_json::Map::new(),
+            override_settings: serde_json::Map::new(),
+            override_settings_restore_afterwards: true,
         }
     }
 }
 
 impl TextToImagePayload {
+    pub fn set_base_model(&mut self, title: &str) -> &mut Self {
+        // let override_settings = json!({
+        //     "sd_model_checkpoint": title,
+        // });
+        // let override_settings = override_settings.as_object().unwrap().to_owned();
+        let mut override_settings: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
+        override_settings.insert(
+            "sd_model_checkpoint".to_owned(),
+            serde_json::to_value(title).unwrap()
+        );
+        self.override_settings.extend(override_settings);
+        self
+    }
+
     pub fn add_controlnet_units(&mut self, controlnet_units: &Vec<ControlnetPayload>) -> &mut Self {
         let alwayson_scripts = json!({
             "ControlNet": {
@@ -108,10 +124,7 @@ impl TextToImagePayload {
             .as_object()
             .unwrap()
             .to_owned();
-        self.alwayson_scripts
-            .as_object_mut()
-            .unwrap()
-            .extend(alwayson_scripts);
+        self.alwayson_scripts.extend(alwayson_scripts);
         self
     }
 
@@ -198,4 +211,20 @@ impl Default for ControlnetPayload {
 pub struct LoraPayload {
     pub name: String,
     pub weight: f32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SDModel {
+    pub title: String,
+    pub model_name: String,
+    pub hash: String,
+    pub sha256: String,
+    pub filename: String,
+    pub config: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct WebUIConfig {
+    pub sd_model_checkpoint: String,
+    pub sd_checkpoint_hash: String,
 }

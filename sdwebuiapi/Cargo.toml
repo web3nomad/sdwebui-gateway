@@ -1,7 +1,7 @@
 [package]
 name = "sdwebuiapi"
 description = "A library for interacting with openapi of AUTOMATIC1111/stable-diffusion-webui"
-version = "0.0.3"
+version = "0.0.4"
 repository = "https://github.com/web3nomad/sdwebui-gateway"
 readme = "README.md"
 license = "MIT"

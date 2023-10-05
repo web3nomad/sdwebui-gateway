@@ -31,16 +31,19 @@ async fn main() {
     }];
 
     let mut payload = sdwebuiapi::TextToImagePayload {
-        prompt: "a cyberpunk cat".to_string(),
+        prompt: "a cyberpunk cat".to_owned(),
         // prompt: "a cyberpunk cat <lora:add_detail:1>".to_string(),
         // prompt: "a circle".to_string(),
         ..Default::default()
     };
 
     payload
+        // .set_base_model("DreamShaper_6_BakedVae.safetensors [b76cc78ad9]")
+        .set_base_model("level4_v50BakedVAEFp16.safetensors [c61df6130b]")
         .add_loras(&loras)
         .add_controlnet_units(&controlnet_units);
     // println!("prompt = {:?}", payload.prompt);
+    // println!("payload = {:?}",  payload);
 
     let client = sdwebuiapi::Client::new("http://localhost:7860/");
     let response = client.txt2img(payload).await;
