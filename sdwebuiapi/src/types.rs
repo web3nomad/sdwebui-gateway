@@ -98,7 +98,7 @@ impl Default for TextToImagePayload {
 }
 
 impl TextToImagePayload {
-    pub fn add_controlnet_units(&mut self, controlnet_units: &Vec<ControlnetPayload>) {
+    pub fn add_controlnet_units(&mut self, controlnet_units: &Vec<ControlnetPayload>) -> &mut Self {
         let alwayson_scripts = json!({
             "ControlNet": {
                 "args": serde_json::to_value(&controlnet_units).unwrap()
@@ -112,6 +112,19 @@ impl TextToImagePayload {
             .as_object_mut()
             .unwrap()
             .extend(alwayson_scripts);
+        self
+    }
+
+    pub fn add_loras(&mut self, loras: &Vec<LoraPayload>) -> &mut Self {
+        let _x = loras;
+        // format loras as <lira:{name}:{weight}> and append them to the end of self.prompt
+        let loras_str: Vec<String> = loras
+            .iter()
+            .map(|lora| format!(" <lora:{}:{}>", lora.name, lora.weight))
+            .collect();
+        let loras_str = loras_str.join("");
+        self.prompt = format!("{}{}", self.prompt, loras_str);
+        self
     }
 }
 
@@ -141,7 +154,7 @@ pub struct TextToImageResponse {
 // }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct  ControlnetPayload {
+pub struct ControlnetPayload {
     pub input_image: String,
     pub mask: String,
     pub module: String,
@@ -179,4 +192,10 @@ impl Default for ControlnetPayload {
             pixel_perfect: false,
         }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LoraPayload {
+    pub name: String,
+    pub weight: f32,
 }
