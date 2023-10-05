@@ -1,6 +1,7 @@
 use std::vec;
 
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 
 // use super::enums::Sampler;
 // use super::enums::Upscaler;
@@ -47,12 +48,9 @@ pub struct TextToImagePayload {
 
     // pub script_name: String,
     // pub script_args: Vec<String>,
-    // pub alwayson_scripts: {},
+    pub alwayson_scripts: serde_json::Value,
     // pub override_settings: {},
     // pub override_settings_restore_afterwards: bool,
-
-    // following params are not in openapi schema
-    pub controlnet_units: Vec<ControlnetPayload>,
 }
 
 // add default value to TextToImagePayload's sampler and upscaler
@@ -94,8 +92,26 @@ impl Default for TextToImagePayload {
             sampler_name: "Euler a".to_owned(),
             send_images: true,
             save_images: false,
-            controlnet_units: vec![],
+            alwayson_scripts: json!({}),
         }
+    }
+}
+
+impl TextToImagePayload {
+    pub fn add_controlnet_units(&mut self, controlnet_units: &Vec<ControlnetPayload>) {
+        let alwayson_scripts = json!({
+            "ControlNet": {
+                "args": serde_json::to_value(&controlnet_units).unwrap()
+            }
+        });
+        let alwayson_scripts = alwayson_scripts
+            .as_object()
+            .unwrap()
+            .to_owned();
+        self.alwayson_scripts
+            .as_object_mut()
+            .unwrap()
+            .extend(alwayson_scripts);
     }
 }
 

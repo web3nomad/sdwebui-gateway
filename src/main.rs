@@ -1,3 +1,5 @@
+use std::vec;
+
 use tokio;
 // use sdwebuiapi::TextToImagePayload;
 // use data_encoding::BASE64;
@@ -12,23 +14,25 @@ async fn main() {
     let input_image = std::fs::read("tmp/input-image.png").unwrap();
     let raw_b64_str = data_encoding::BASE64.encode(&input_image);
 
-    let client = sdwebuiapi::Client::new("http://localhost:7860/");
     let controlnet_payload = sdwebuiapi::ControlnetPayload {
         input_image: raw_b64_str.clone(),
-        mask: raw_b64_str.clone(),
+        // mask: raw_b64_str.clone(),
         // model: "control_v11p_sd15_mlsd [aca30ff0]".to_owned(),
         // module: "mlsd".to_owned(),
         model: "control_v11p_sd15_canny [d14c016b]".to_owned(),
         module: "canny".to_owned(),
         ..Default::default()
     };
-    let payload = sdwebuiapi::TextToImagePayload {
+    let controlnet_units = vec![controlnet_payload];
+    let mut payload = sdwebuiapi::TextToImagePayload {
         prompt: "a cyberpunk cat".to_string(),
+        // prompt: "a cyberpunk cat <lora:add_detail:1>".to_string(),
         // prompt: "a circle".to_string(),
-        controlnet_units: vec![controlnet_payload],
         ..Default::default()
     };
+    payload.add_controlnet_units(&controlnet_units);
 
+    let client = sdwebuiapi::Client::new("http://localhost:7860/");
     let response = client.txt2img(payload).await;
     // println!("response.parameters = {:?}", response.parameters);
     // println!("response.info = {:?}", response.info);
