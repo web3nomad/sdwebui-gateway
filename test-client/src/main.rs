@@ -10,8 +10,8 @@ use tokio;
 
 #[tokio::main]
 async fn main() {
-    // read image from tmp/input-image.png and convert it to base64
-    let input_image = std::fs::read("tmp/input-image.png").unwrap();
+    // read image from tmp/input-image.png in the same folder of main.rs and convert it to base64
+    let input_image = std::fs::read("test-client/tmp/input-image.png").unwrap();
     let raw_b64_str = data_encoding::BASE64.encode(&input_image);
 
     let controlnet_payload = sdwebuiapi::ControlnetPayload {
@@ -52,8 +52,14 @@ async fn main() {
 
     let raw_b64_str = &response.images[0];
     let output_image = data_encoding::BASE64.decode(raw_b64_str.as_bytes()).unwrap();
-    std::fs::write("tmp/output-image.png", output_image).unwrap();
+    std::fs::write("test-client/tmp/output-image.png", output_image).unwrap();
 
     // let b64_img_str = b64_img(raw_b64_str);
     // std::fs::write("tmp/output.txt", b64_img_str).unwrap();
+
+    // 并行调用两个 txt2img 方法，等待直到两个方法都调用结束
+    // let client = sdwebuiapi::Client::new("https://0.aks-east-3.museai.cc/");
+    // let client2 = sdwebuiapi::Client::new("https://0.aks-east-3.museai.cc/");
+    // let response = tokio::join!(client.txt2img(payload), client2.txt2img(payload));
+    // println!("response = {:?}", response);
 }
