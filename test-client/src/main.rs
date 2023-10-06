@@ -24,10 +24,11 @@ async fn generate_image_1(webui_origin: &str) {
     };
     let controlnet_units = vec![controlnet_payload];
 
-    let loras = vec![sdwebuiapi::LoraPayload {
+    let lora_paylod = sdwebuiapi::LoraPayload {
         name: "add_detail".to_owned(),
         weight: 1.0
-    }];
+    };
+    let loras = vec![lora_paylod];
 
     let mut payload = sdwebuiapi::TextToImagePayload {
         prompt: "a cyberpunk cat".to_owned(),

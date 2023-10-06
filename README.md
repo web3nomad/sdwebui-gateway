@@ -1,2 +1,6 @@
 
-requires Stable Diffusion WebUI >= 1.5
+# sdwebui gateway
+
+A bunch of stable diffusion webui related tools written in rust, including:
+- [sdwebuiapi](https://crates.io/crates/sdwebuiapi) (WIP)
+- Others TBA
