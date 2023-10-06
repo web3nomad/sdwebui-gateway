@@ -56,6 +56,10 @@ pub struct TextToImagePayload {
 // add default value to TextToImagePayload's sampler and upscaler
 impl Default for TextToImagePayload {
     fn default() -> Self {
+        let override_settings = json!({
+            "enable_pnginfo": true,
+        }).as_object().unwrap().to_owned();
+
         Self {
             enable_hr: false,
             hr_scale: 2.0,
@@ -93,7 +97,7 @@ impl Default for TextToImagePayload {
             send_images: true,
             save_images: false,
             alwayson_scripts: serde_json::Map::new(),
-            override_settings: serde_json::Map::new(),
+            override_settings: override_settings,
             override_settings_restore_afterwards: true,
         }
     }
@@ -129,7 +133,7 @@ impl TextToImagePayload {
     }
 
     pub fn add_loras(&mut self, loras: &Vec<LoraPayload>) -> &mut Self {
-        let _x = loras;
+        // let _x = loras;
         // format loras as <lira:{name}:{weight}> and append them to the end of self.prompt
         let loras_str: Vec<String> = loras
             .iter()
@@ -215,7 +219,7 @@ pub struct LoraPayload {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SDModel {
-    pub title: String,
+    pub title: String,  // format "name.ext [hash]"
     pub model_name: String,
     pub hash: String,
     pub sha256: String,
@@ -225,6 +229,6 @@ pub struct SDModel {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WebUIConfig {
-    pub sd_model_checkpoint: String,
-    pub sd_checkpoint_hash: String,
+    pub sd_model_checkpoint: String,  // format "name.ext [hash]", same as title field  in SDModel
+    pub sd_checkpoint_hash: String,  // full sha256 hash
 }

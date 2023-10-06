@@ -1,22 +1,19 @@
 use std::vec;
 
 use tokio;
-// use sdwebuiapi::TextToImagePayload;
-// use data_encoding::BASE64;
 
-// fn b64_img(raw_b64_str: &str) -> String {
-//     "data:image/png;base64,".to_string() + raw_b64_str
-// }
+fn b64_img(raw_b64_str: &str) -> String {
+    "data:image/png;base64,".to_string() + raw_b64_str
+}
 
-#[tokio::main]
-async fn main() {
-    // read image from tmp/input-image.png in the same folder of main.rs and convert it to base64
+async fn generate_image_1() {
+    println!("generate_image_1 starts");
+
     let input_image = std::fs::read("test-client/tmp/input-image.png").unwrap();
     let raw_b64_str = data_encoding::BASE64.encode(&input_image);
 
     let controlnet_payload = sdwebuiapi::ControlnetPayload {
         input_image: raw_b64_str.clone(),
-        // mask: raw_b64_str.clone(),
         // model: "control_v11p_sd15_mlsd [aca30ff0]".to_owned(),
         // module: "mlsd".to_owned(),
         model: "control_v11p_sd15_canny [d14c016b]".to_owned(),
@@ -38,7 +35,6 @@ async fn main() {
     };
 
     payload
-        // .set_base_model("DreamShaper_6_BakedVae.safetensors [b76cc78ad9]")
         .set_base_model("level4_v50BakedVAEFp16.safetensors [c61df6130b]")
         .add_loras(&loras)
         .add_controlnet_units(&controlnet_units);
@@ -52,14 +48,30 @@ async fn main() {
 
     let raw_b64_str = &response.images[0];
     let output_image = data_encoding::BASE64.decode(raw_b64_str.as_bytes()).unwrap();
-    std::fs::write("test-client/tmp/output-image.png", output_image).unwrap();
+    std::fs::write("test-client/tmp/output-image-1.png", output_image).unwrap();
+    std::fs::write("test-client/tmp/output-image-1.txt", b64_img(raw_b64_str)).unwrap();
 
-    // let b64_img_str = b64_img(raw_b64_str);
-    // std::fs::write("tmp/output.txt", b64_img_str).unwrap();
+    println!("generate_image_1 ends");
+}
 
-    // 并行调用两个 txt2img 方法，等待直到两个方法都调用结束
-    // let client = sdwebuiapi::Client::new("https://0.aks-east-3.museai.cc/");
-    // let client2 = sdwebuiapi::Client::new("https://0.aks-east-3.museai.cc/");
-    // let response = tokio::join!(client.txt2img(payload), client2.txt2img(payload));
-    // println!("response = {:?}", response);
+async fn generate_image_2() {
+    println!("generate_image_2 starts");
+    let mut payload = sdwebuiapi::TextToImagePayload {
+        prompt: "a circle".to_string(),
+        ..Default::default()
+    };
+    payload.set_base_model("DreamShaper_6_BakedVae.safetensors [b76cc78ad9]");
+    let client = sdwebuiapi::Client::new("http://localhost:7860/");
+    let response = client.txt2img(payload).await;
+    let raw_b64_str = &response.images[0];
+    let output_image = data_encoding::BASE64.decode(raw_b64_str.as_bytes()).unwrap();
+    std::fs::write("test-client/tmp/output-image-2.png", output_image).unwrap();
+    std::fs::write("test-client/tmp/output-image-2.txt", b64_img(raw_b64_str)).unwrap();
+    println!("generate_image_2 ends");
+}
+
+#[tokio::main]
+async fn main() {
+    let response = tokio::join!(generate_image_1(), generate_image_2());
+    println!("response = {:?}", response);
 }

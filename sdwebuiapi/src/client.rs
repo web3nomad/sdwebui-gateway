@@ -29,9 +29,7 @@ impl OpenApiV1 {
             .json(&request_payload)
             .send()
             .await?;
-        // println!("status = {}", res.status());
         let res_body_text = res.text().await.unwrap();
-        // println!("body = {}", res_body_text);
         let res_body_json: serde_json::Value = serde_json::from_str(&res_body_text).unwrap();
         return Ok(res_body_json);
     }
@@ -64,7 +62,6 @@ impl Client {
 
     pub async fn txt2img(&self, payload: TextToImagePayload) -> TextToImageResponse {
         let payload_value = serde_json::to_value(&payload).unwrap();
-        // println!("request_payload = {}", payload_value.to_string());
         let json_data = self
             .open_api_v1
             .post("txt2img", payload_value)
@@ -76,33 +73,32 @@ impl Client {
 
     pub async fn set_model_by_title(&mut self, title: &str) {
         let sd_models = self.get_sd_models().await;
-        // let found = sd_models.iter().find(|sd_model| sd_model.title == title);
         if let Some(sd_model) = sd_models.iter().find(|sd_model| sd_model.title == title) {
             let webui_config = WebUIConfig {
-                // TODO: 确认这里用 title 还是 model_name
-                sd_model_checkpoint: format!("{} [{}]", sd_model.title, sd_model.hash),
-                sd_checkpoint_hash: sd_model.hash.clone(),
+                // sd_model_checkpoint: format!("{} [{}]", sd_model.model_name, sd_model.hash),
+                // sd_checkpoint_hash: sd_model.hash.clone(),
+                sd_model_checkpoint: sd_model.title.clone(),
+                sd_checkpoint_hash: sd_model.sha256.clone(),
             };
             self.set_webui_config(webui_config).await;
+        } else {
+            panic!("No model found with title: {}", title);
         }
     }
 
     pub async fn get_current_model(&mut self) -> &SDModel {
         let webui_config = self.get_webui_config().await;
-        // TODO: 确认这里用 sd_model_checkpoint 还是 sd_checkpoint_hash
-        // let sd_checkpoint_hash = webui_config.sd_checkpoint_hash;
-        let sd_model_checkpoint = webui_config.sd_model_checkpoint;
         let sd_models = self.get_sd_models().await;
         let found = sd_models
             .iter()
-            // .find(|sd_model| sd_model.hash == sd_checkpoint_hash);
-            .find(|sd_model| sd_model.title == sd_model_checkpoint);
+            // .find(|sd_model| sd_model.hash == webui_config.sd_checkpoint_hash);
+            .find(|sd_model| sd_model.title == webui_config.sd_model_checkpoint);
         if let Some(sd_model) = found {
             sd_model
         } else {
-            // TODO: 没有 current model 的时候姑且返回第一个, 这种情况其实不会出现, 应该 panic!
             // &sd_models.to_owned()[0]
-            sd_models.get(0).unwrap()
+            // sd_models.get(0).unwrap()
+            panic!("No current model found!");
         }
     }
 
