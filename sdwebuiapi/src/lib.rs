@@ -13,7 +13,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let client = Client::new("http://localhost:7860");
+        let client = Client::new("http://localhost:7860", None);
         assert_eq!(client.open_api_v1.api_root, "http://localhost:7860/sdapi/v1/");
     }
 }

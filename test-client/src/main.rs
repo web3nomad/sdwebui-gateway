@@ -8,7 +8,7 @@ fn b64_img(raw_b64_str: &str) -> String {
     "data:image/png;base64,".to_string() + raw_b64_str
 }
 
-async fn generate_image_1(webui_origin: &str) {
+async fn generate_image_1(webui_origin: &str, api_auth: Option<sdwebuiapi::OpenApiV1Auth>) {
     println!("generate_image_1 starts");
 
     let input_image = std::fs::read("test-client/tmp/input-image.png").unwrap();
@@ -44,7 +44,7 @@ async fn generate_image_1(webui_origin: &str) {
     // println!("prompt = {:?}", payload.prompt);
     // println!("payload = {:?}",  payload);
 
-    let client = sdwebuiapi::Client::new(webui_origin);
+    let client = sdwebuiapi::Client::new(webui_origin, api_auth);
     let response = client.txt2img(payload).await;
     // println!("response.parameters = {:?}", response.parameters);
     // println!("response.info = {:?}", response.info);
@@ -57,14 +57,16 @@ async fn generate_image_1(webui_origin: &str) {
     println!("generate_image_1 ends");
 }
 
-async fn generate_image_2(webui_origin: &str) {
+async fn generate_image_2(webui_origin: &str, api_auth: Option<sdwebuiapi::OpenApiV1Auth>) {
     println!("generate_image_2 starts");
     let mut payload = sdwebuiapi::TextToImagePayload {
         prompt: "a circle".to_string(),
+        // width: 512,
+        // height: 512,
         ..Default::default()
     };
     payload.set_base_model("DreamShaper_6_BakedVae.safetensors [b76cc78ad9]");
-    let client = sdwebuiapi::Client::new(webui_origin);
+    let client = sdwebuiapi::Client::new(webui_origin, api_auth);
     let response = client.txt2img(payload).await;
     let raw_b64_str = &response.images[0];
     let output_image = data_encoding::BASE64.decode(raw_b64_str.as_bytes()).unwrap();
@@ -77,9 +79,13 @@ async fn generate_image_2(webui_origin: &str) {
 async fn main() {
     dotenv().ok();
     let webui_origin = env::var("SD_WEBUI_TEST_ORIGIN").unwrap();
+    let api_auth = Some(sdwebuiapi::OpenApiV1Auth {
+        username: env::var("SD_WEBUI_TEST_AUTH_USERNAME").unwrap(),
+        password: env::var("SD_WEBUI_TEST_AUTH_PASSWORD").unwrap(),
+    });
     let response = tokio::join!(
-        generate_image_1(&webui_origin),
-        generate_image_2(&webui_origin)
+        generate_image_1(&webui_origin, api_auth.clone()),
+        generate_image_2(&webui_origin, api_auth.clone()),
     );
     println!("response = {:?}", response);
 }

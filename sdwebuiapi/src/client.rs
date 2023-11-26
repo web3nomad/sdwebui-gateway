@@ -2,19 +2,26 @@ use reqwest;
 // use serde_json::json;
 use super::types::*;
 
+#[derive(Clone)]
+pub struct OpenApiV1Auth {
+    pub username: String,
+    pub password: String,
+}
+
 pub struct OpenApiV1 {
     pub api_root: String,
+    pub api_auth: Option<OpenApiV1Auth>,
 }
 
 impl OpenApiV1 {
-    pub fn new(origin: &str) -> Self {
+    pub fn new(origin: &str, api_auth: Option<OpenApiV1Auth>) -> Self {
         // assign origin to _origin, if origin is not ends with "/", add it
         let api_root = if origin.ends_with("/") {
             format!("{}{}", origin, "sdapi/v1/")
         } else {
             format!("{}{}", origin, "/sdapi/v1/")
         };
-        Self { api_root }
+        Self { api_root, api_auth }
     }
 
     pub async fn post(
@@ -23,25 +30,45 @@ impl OpenApiV1 {
         request_payload: serde_json::Value,
     ) -> Result<serde_json::Value, reqwest::Error> {
         let url: String = format!("{}{}", self.api_root, api_path);
-        let res = reqwest::Client::new()
+        let req = reqwest::Client::new()
             .post(url)
-            .header("Content-Type", "application/json")
             .json(&request_payload)
-            .send()
-            .await?;
+            .header("Content-Type", "application/json");
+        let req = if let Some(api_auth) = &self.api_auth {
+            req.basic_auth(&api_auth.username, Some(&api_auth.password))
+        } else {
+            req
+        };
+        let res = req.send().await?;
+        let res_status = res.status();
         let res_body_text = res.text().await.unwrap();
+        if res_status != 200 {
+            println!("res.status(): {}", res_status);
+            println!("res.text(): {}", res_body_text);
+            panic!("res.status() != 200");
+        }
         let res_body_json: serde_json::Value = serde_json::from_str(&res_body_text).unwrap();
         return Ok(res_body_json);
     }
 
     pub async fn get(&self, api_path: &str) -> Result<serde_json::Value, reqwest::Error> {
         let url: String = format!("{}{}", self.api_root, api_path);
-        let res = reqwest::Client::new()
+        let req = reqwest::Client::new()
             .post(url)
-            .header("Content-Type", "application/json")
-            .send()
-            .await?;
+            .header("Content-Type", "application/json");
+        let req = if let Some(api_auth) = &self.api_auth {
+            req.basic_auth(&api_auth.username, Some(&api_auth.password))
+        } else {
+            req
+        };
+        let res = req.send().await?;
+        let res_status = res.status();
         let res_body_text = res.text().await.unwrap();
+        if res_status != 200 {
+            println!("res.status(): {}", res_status);
+            println!("res.text(): {}", res_body_text);
+            panic!("res.status() != 200");
+        }
         let res_body_json: serde_json::Value = serde_json::from_str(&res_body_text).unwrap();
         return Ok(res_body_json);
     }
@@ -53,10 +80,10 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(origin: &str) -> Self {
+    pub fn new(origin: &str, api_auth: Option<OpenApiV1Auth>) -> Self {
         Self {
             sd_models: vec![],
-            open_api_v1: OpenApiV1::new(origin),
+            open_api_v1: OpenApiV1::new(origin, api_auth),
         }
     }
 

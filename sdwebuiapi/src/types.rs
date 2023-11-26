@@ -57,7 +57,7 @@ pub struct TextToImagePayload {
 impl Default for TextToImagePayload {
     fn default() -> Self {
         let override_settings = json!({
-            "enable_pnginfo": true,
+            // "enable_pnginfo": true,
         }).as_object().unwrap().to_owned();
 
         Self {
