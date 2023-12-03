@@ -19,7 +19,12 @@ webuiapi_demo.ipynb contains example code with original images. Images are compr
 ## create API client
 
 ```rust
-let client = sdwebuiapi::Client::new("http://localhost:7860");
+let api_auth = Some(sdwebuiapi::OpenApiV1Auth {
+    username: "username set in webui's --api-auth arg",
+    password: "password set in webui's --api-auth arg",
+});
+// or `let api_auth = None` if webui is not protected by api_auth
+let client = sdwebuiapi::Client::new("http://localhost:7860", api_auth);
 ```
 
 ## txt2img
